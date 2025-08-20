@@ -1,0 +1,10 @@
+
+val_acc 64.61%
+
+First I improved the models performance by increasing complexity. I did this through doubling the filter sizes, adding an additional conv, 
+bn and relu layer and replacing one 3 by 3 layer with a 1x3 and 3x1 layer. Furthermore I added 2 additional pooling layers to help decrease computation. I found 
+that data augmentation did not improve my model’s performance, probably due to the fact that the input images are already quite small so I did not 
+do any additional data augmentation besides setting contrast normalization and whitening 
+to true. Hyperparameters wise, I found that my model was originally overfitting so I increased the weight decay to 0.0005 and decreased
+ batch size to 64. I also found that increasing my step size and increasing my gamma helped with stopping the accuracy from plateauing 
+ earlier on as it would train for more epochs before decreasing the learning rate more gradually. 

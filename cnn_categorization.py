@@ -1,0 +1,190 @@
+from create_dataset import create_dataset
+from cnn_categorization_base import cnn_categorization_base
+from cnn_categorization_improved import cnn_categorization_improved
+from train import train
+from torch import load,random, save
+from argparse import ArgumentParser
+import matplotlib.pyplot as plt
+from itertools import product
+import os
+
+
+
+def grid_search():
+    lr_list = [0.01, 0.001, 0.0001]
+    batch_size_list = [64, 128, 256]
+    num_ep_list = [13]
+    momentum_list = [0.9, 0.95]
+    step_size_list = [3,5]
+    best_accuracy = 0.0
+    best_combination = None
+
+    grid = product(lr_list, batch_size_list, momentum_list, num_ep_list, step_size_list)
+
+    for lr, batch_size, momentum, num_epochs, step_size in grid:
+        print(f"Training with lr={lr}, batch_size={batch_size}, momentum={momentum}, step size={step_size}")
+        # train_opts = {
+        #     "lr": lr,
+        #     "weight_decay": 0.0001,
+        #     "batch_size": batch_size,
+        #     "momentum": momentum,
+        #     "num_epochs": num_epochs,
+        #     "step_size": 2,
+        #     "gamma": 0.1
+        # }
+
+        cnn_categorization(
+            model_type="improved",  
+            data_path="image_categorization_dataset.pt",
+            contrast_normalization=False, 
+            whiten=False,  
+             lr = lr, batch_size=batch_size,
+                        num_epochs=num_epochs, weight_decay=0.0001, momentum=momentum, step_size=step_size, gamma=0.1
+        )
+
+    
+
+def cnn_categorization(model_type="base",
+                       data_path="image_categorization_dataset.pt",
+                       contrast_normalization=False, whiten=False):
+    """
+    Invokes the dataset creation, the model construction and training functions
+
+    Arguments
+    --------
+    model_type: (string), the type of model to train. Use 'base' for the base model and 'improved for the improved model. Default: base
+    data_path: (string), the path to the dataset. This argument will be passed to the dataset creation function
+    contrast_normalization: (boolean), specifies whether or not to do contrast normalization
+    whiten: (boolean), specifies whether or not to whiten the data.
+
+    """
+    # Do not change the output path
+    # but you can uncomment the exp_dir if you do not want to save the model checkpoints
+    output_path = "{}_image_categorization_dataset.pt".format(model_type)
+    exp_dir = "./{}_models".format(model_type)
+
+    # folder = "tests/"
+    # name= "double_base_model/"
+    # os.makedirs(f"{folder}{name}", exist_ok=True)
+    # output_path = "{}{}_image_categorization_dataset.pt".format(folder, name)
+    # exp_dir = "./{}{}_models".format(folder, name)
+
+    train_ds, val_ds = create_dataset(data_path, output_path, contrast_normalization, whiten)
+
+    # specify the network architecture and the training policy of the models under
+    # the respective blocks
+    if model_type == "base":
+        # create netspec_opts
+        netspec_opts = {
+            "kernel_size":[3,0,0,3,0,0,3,0,0,8,1],
+            "num_filters":[16, 16, 0, 32, 32, 0, 64, 64, 0,0, 16],
+            "stride":[1, 0, 0,2 ,0,0,2,0,0,1,1],
+            "layer_type":["conv", "bn", "relu", "conv", "bn", "relu", "conv", "bn", "relu", "pool", "conv"]
+
+        }
+        # create train_opts
+        # train_opts = {
+        #     "lr": 0.1,
+        #     "weight_decay": 0.0001,
+        #     "batch_size": 128,
+        #     "momentum": 0.9,
+        #     "num_epochs": 20,
+        #     "step_size": 50,
+        #     "gamma": 0.1
+        # }
+
+         # create train_opts 2
+        train_opts = {
+            "lr": 0.01,
+            "weight_decay":0.0001,
+            "batch_size": 128,
+            "momentum": 0.9,
+            "num_epochs": 5,
+            "step_size": 50,
+            "gamma": 0.1
+        }
+        # create model base on tetspect_opts
+        model = cnn_categorization_base(netspec_opts)
+
+
+    elif model_type == "improved":
+        # create netspec_opts
+
+       
+    #     netspec_opts = {
+    #        "kernel_size":[3,0,0, (3,1), 0,0,(1,3),0,0,(3,1), 0,0,(1,3), 0,0,3, 0,0, 4,1],
+    #        "num_filters":[16, 16, 0, 32, 32, 0, 32, 32, 0, 64, 64, 0, 64, 64, 0, 128, 128,0,0, 16],
+    #        "stride":[1, 0, 0,1 ,0,0,1,0,0,2,0,0,2,0,0, 2, 0,0,1,1],
+    #        "layer_type":["conv", "bn", "relu", "conv", "bn", "relu", "conv", "bn", "relu","conv", "bn", "relu", "conv", "bn", "relu","conv", "bn", "relu", "pool", "conv"]
+    #     }
+
+        netspec_opts = {
+           "kernel_size":[3,0,0,3,0,0,(1,3),0,0,2, (3,1),0,0,2, 3, 0,0,8,1],
+           "num_filters":[32, 32, 0, 64, 64, 0, 64, 64, 0, 0,64, 64, 0, 0, 256, 256, 0, 0, 16],
+           "stride":[1, 0, 0,1 ,0,0,1,0,0,2 ,1,0,0,2, 1,0,0,1,1],
+           "layer_type":["conv", "bn", "relu", "conv", "bn", "relu","conv", "bn", "relu","pool", "conv", "bn","relu", "pool","conv", "bn", "relu", "pool", "conv"]
+
+
+       }
+       # create train_opts
+        train_opts = {
+           "lr": 0.01,
+           "weight_decay": 0.0005,
+           "batch_size": 64,
+           "momentum": 0.9,
+           "num_epochs": 15,
+           "step_size": 13,
+           "gamma": 0.13
+       }
+
+
+
+        # create improved model
+        model = cnn_categorization_improved(netspec_opts)
+    else:
+        raise ValueError(f"Error: unknown model type {model_type}")
+
+    # uncomment the line below if you wish to resume training of a saved model
+    #model.load_state_dict(load("base_state_dict.pt"))
+    #model.load_state_dict(load("improved_state_dict.pt"))
+
+
+    # train the model
+    train(model, train_ds, val_ds, train_opts, exp_dir)
+
+    #saving test models:
+    # state_dictionary_path = f"{folder}{name}state_dict.pt"
+    # save(model.state_dict(), state_dictionary_path)
+    # model = {"state":state_dictionary_path, "specs": netspec_opts}
+    # save(model, "{}{}-model.pt".format(folder, name))
+    
+    # save model's state and architecture to the base directory
+    state_dictionary_path = f"{model_type}_state_dict.pt"
+    save(model.state_dict(), state_dictionary_path)
+    model = {"state":state_dictionary_path, "specs": netspec_opts}
+    save(model, "{}-model.pt".format(model_type))
+
+    plt.savefig(f"{model_type}-categorization.png")
+    plt.show()
+
+
+if __name__ == '__main__':
+    # Change the default values for the various parameters to your preferred values
+    # Alternatively, you can specify different values from the command line
+    # For example, to change model type from base to improved
+    # type <cnn_categorization.py --model_type improved> at a command line and press enter
+    args = ArgumentParser()
+    args.add_argument("--model_type", type=str, default="improved", required=False,
+                      help="The model type must be either base or improved")
+    args.add_argument("--data_path", type=str, default="image_categorization_dataset.pt",
+                      required=False, help="Specify the path to the dataset")
+    args.add_argument("--contrast_normalization", type=bool, default=True, required=False,
+                      help="Specify whether or not to do contrast_normalization")
+    args.add_argument("--whiten", type=bool, default=True, required=False,
+                      help="Specify whether or not to whiten value")
+
+    args, _ = args.parse_known_args()
+    cnn_categorization(**args.__dict__)
+
+
+
