@@ -23,15 +23,7 @@ def grid_search():
 
     for lr, batch_size, momentum, num_epochs, step_size in grid:
         print(f"Training with lr={lr}, batch_size={batch_size}, momentum={momentum}, step size={step_size}")
-        # train_opts = {
-        #     "lr": lr,
-        #     "weight_decay": 0.0001,
-        #     "batch_size": batch_size,
-        #     "momentum": momentum,
-        #     "num_epochs": num_epochs,
-        #     "step_size": 2,
-        #     "gamma": 0.1
-        # }
+
 
         cnn_categorization(
             model_type="improved",  
@@ -58,8 +50,7 @@ def cnn_categorization(model_type="base",
     whiten: (boolean), specifies whether or not to whiten the data.
 
     """
-    # Do not change the output path
-    # but you can uncomment the exp_dir if you do not want to save the model checkpoints
+
     output_path = "{}_image_categorization_dataset.pt".format(model_type)
     exp_dir = "./{}_models".format(model_type)
 
@@ -71,8 +62,7 @@ def cnn_categorization(model_type="base",
 
     train_ds, val_ds = create_dataset(data_path, output_path, contrast_normalization, whiten)
 
-    # specify the network architecture and the training policy of the models under
-    # the respective blocks
+    # specify the network architecture and the training policy of the models
     if model_type == "base":
         # create netspec_opts
         netspec_opts = {
@@ -82,18 +72,7 @@ def cnn_categorization(model_type="base",
             "layer_type":["conv", "bn", "relu", "conv", "bn", "relu", "conv", "bn", "relu", "pool", "conv"]
 
         }
-        # create train_opts
-        # train_opts = {
-        #     "lr": 0.1,
-        #     "weight_decay": 0.0001,
-        #     "batch_size": 128,
-        #     "momentum": 0.9,
-        #     "num_epochs": 20,
-        #     "step_size": 50,
-        #     "gamma": 0.1
-        # }
 
-         # create train_opts 2
         train_opts = {
             "lr": 0.01,
             "weight_decay":0.0001,
@@ -108,15 +87,7 @@ def cnn_categorization(model_type="base",
 
 
     elif model_type == "improved":
-        # create netspec_opts
 
-       
-    #     netspec_opts = {
-    #        "kernel_size":[3,0,0, (3,1), 0,0,(1,3),0,0,(3,1), 0,0,(1,3), 0,0,3, 0,0, 4,1],
-    #        "num_filters":[16, 16, 0, 32, 32, 0, 32, 32, 0, 64, 64, 0, 64, 64, 0, 128, 128,0,0, 16],
-    #        "stride":[1, 0, 0,1 ,0,0,1,0,0,2,0,0,2,0,0, 2, 0,0,1,1],
-    #        "layer_type":["conv", "bn", "relu", "conv", "bn", "relu", "conv", "bn", "relu","conv", "bn", "relu", "conv", "bn", "relu","conv", "bn", "relu", "pool", "conv"]
-    #     }
 
         netspec_opts = {
            "kernel_size":[3,0,0,3,0,0,(1,3),0,0,2, (3,1),0,0,2, 3, 0,0,8,1],
@@ -152,11 +123,6 @@ def cnn_categorization(model_type="base",
     # train the model
     train(model, train_ds, val_ds, train_opts, exp_dir)
 
-    #saving test models:
-    # state_dictionary_path = f"{folder}{name}state_dict.pt"
-    # save(model.state_dict(), state_dictionary_path)
-    # model = {"state":state_dictionary_path, "specs": netspec_opts}
-    # save(model, "{}{}-model.pt".format(folder, name))
     
     # save model's state and architecture to the base directory
     state_dictionary_path = f"{model_type}_state_dict.pt"
@@ -169,10 +135,7 @@ def cnn_categorization(model_type="base",
 
 
 if __name__ == '__main__':
-    # Change the default values for the various parameters to your preferred values
-    # Alternatively, you can specify different values from the command line
-    # For example, to change model type from base to improved
-    # type <cnn_categorization.py --model_type improved> at a command line and press enter
+
     args = ArgumentParser()
     args.add_argument("--model_type", type=str, default="improved", required=False,
                       help="The model type must be either base or improved")
