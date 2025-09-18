@@ -3,7 +3,7 @@ from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from os import path, mkdir
-#device = torch.device("mp3")
+
 
 def train(model, train_ds, val_ds, train_opts, exp_dir=None):
     """
@@ -19,7 +19,7 @@ def train(model, train_ds, val_ds, train_opts, exp_dir=None):
     exp_dir: (string), a directory where the model checkpoints should be saved (optional)
 
     """
-    #model = model.to(device)
+
     train_dl = DataLoader(train_ds, train_opts["batch_size"], shuffle=True)
     val_dl = DataLoader(val_ds, train_opts["batch_size"] * 2, shuffle=False)
 
@@ -27,7 +27,7 @@ def train(model, train_ds, val_ds, train_opts, exp_dir=None):
     num_val = val_ds.tensors[0].size(0)
     print(f"Training on {num_tr} and validating on {num_val} examples")
 
-    # we will use stochastic gradient descent
+    #use stochastic gradient descent
     optimizer = optim.SGD(
         model.parameters(),
         lr=train_opts["lr"],
@@ -41,8 +41,7 @@ def train(model, train_ds, val_ds, train_opts, exp_dir=None):
         gamma=train_opts["gamma"]
     )
 
-    # the loss function of choice for most image categorization tasks
-    # is  categorical cross-entropy
+
     criterion = CrossEntropyLoss()
 
     # track the training metrics
@@ -70,7 +69,6 @@ def train(model, train_ds, val_ds, train_opts, exp_dir=None):
         epoch_loss_val.append(val_loss)
         epoch_acc_val.append(val_acc)
 
-        # it is always good to report the training metrics at the end of every epoch
         print(f"[{epoch + 1}/{num_epochs}: tr_loss {tr_loss:.4} val_loss {val_loss:.4} "
               f"t_acc {train_acc:.2%} val_acc {val_acc:.2%}]")
 
