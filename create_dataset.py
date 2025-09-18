@@ -28,7 +28,6 @@ def create_dataset(data_path, output_path=None, contrast_normalization=False, wh
     class_names = data["class_names"]
 
     # apply the necessary preprocessing as described in the assignment handout.
-    # You must zero-center both the training and test data
     if data_path == "image_categorization_dataset.pt":
         # do mean centering here
         mean_image = data_tr[sets_tr == 1].mean(dim = 0)
@@ -37,7 +36,7 @@ def create_dataset(data_path, output_path=None, contrast_normalization=False, wh
 
         data_te = data_te - mean_image
 
-        # %%% DO NOT EDIT BELOW %%%% #
+
         if contrast_normalization:
             image_std = torch.std(data_tr[sets_tr == 1], unbiased=True)
             image_std[image_std == 0] = 1
