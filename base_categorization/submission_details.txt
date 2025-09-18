@@ -1,2 +1,0 @@
-base model submission details file:
-[5/5: tr_loss 1.126 val_loss 1.358 t_acc 63.31% val_acc 55.94%]
